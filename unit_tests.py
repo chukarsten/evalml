@@ -64,7 +64,41 @@ def test_pipeline_creation(X_y_binary, get_test_params):
     assert pipeline.components[-1]._component_obj.get_params()["random_state"] == random_state
 
 
+# TODO: Mock out proper unittests
 def test_pipeline_fit(X_y_binary, get_test_params):
+    parameters, components, metrics, random_state = get_test_params
+    X, y = X_y_binary
+    X_train, X_test, y_train, y_test = split_data(X, y, random_state=random_state)
+    pipeline = KeystoneXL(parameters=parameters,  # noqa: F841
+                          components=components,
+                          random_state=random_state)
+
+    # Check that pipeline fit function is called for now.
+    assert not pipeline.fit.has_been_called
+    pipeline.fit(X_train, y_train)
+    assert pipeline.fit.has_been_called
+
+    # Use prediction to infer that fitting done properly
+    y_pred = pipeline.predict(X_test)
+    np.testing.assert_allclose(y_pred.tolist(), [1, 1, 1, 1, 0, 0, 0, 1, 1, 0, 0, 1, 0, 0, 0, 1, 1, 1, 1, 1])
+
+
+# def test_pipeline_fit_no_est(X_y_binary, get_test_params):
+#     parameters, components, metrics, random_state = get_test_params
+#     components = [Imputer, OneHotEncoder]
+#     X, y = X_y_binary
+#     X_train, X_test, y_train, y_test = split_data(X, y, random_state=random_state)
+#     pipeline = KeystoneXL(parameters=parameters,  # noqa: F841
+#                           components=components,
+#                           random_state=random_state)
+#     pipeline.fit(X_train, y_train)
+#     y_pred = pipeline.predict(X_test)
+#     # import pdb;
+#     # pdb.set_trace()
+#     np.testing.assert_allclose(y_pred.tolist(), [1, 1, 1, 1, 0, 0, 0, 1, 1, 0, 0, 1, 0, 0, 0, 1, 1, 1, 1, 1])
+
+
+def test_pipeline_predict(X_y_binary, get_test_params):
     parameters, components, metrics, random_state = get_test_params
     X, y = X_y_binary
     X_train, X_test, y_train, y_test = split_data(X, y, random_state=random_state)
@@ -74,18 +108,6 @@ def test_pipeline_fit(X_y_binary, get_test_params):
     pipeline.fit(X_train, y_train)
     y_pred = pipeline.predict(X_test)
     np.testing.assert_allclose(y_pred.tolist(), [1, 1, 1, 1, 0, 0, 0, 1, 1, 0, 0, 1, 0, 0, 0, 1, 1, 1, 1, 1])
-
-
-def test_pipeline_predict(X_y_binary, get_test_params):
-    X, y = X_y_binary
-    X_train, X_test, y_train, y_test = split_data(X, y)
-    parameters, components, metrics, random_state = get_test_params
-    pipeline = KeystoneXL(parameters=parameters,  # noqa: F841
-                          components=components,
-                          random_state=random_state)
-    pipeline.fit(X_train, y_train)
-    y_pred = pipeline.predict(X_test)
-    print(sum(y_pred.to_numpy() == y_test.to_numpy()) / len(y_pred))
 
 
 def test_pipeline_metrics(X_y_binary, get_test_params):

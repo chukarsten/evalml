@@ -1,9 +1,19 @@
 import copy
-from evalml.pipelines import DecisionTreeClassifier
-from evalml.pipelines.components.transformers import Transformer
+import functools
+
 from evalml.pipelines.components.estimators import Estimator
-from evalml.objectives import F1, Recall, Precision, AUC, AccuracyBinary, AccuracyMulticlass
-from evalml.model_understanding import confusion_matrix
+from evalml.pipelines.components.transformers import Transformer
+
+
+def trackcalls(func):
+    @functools.wraps(func)
+    def wrapper(*args, **kwargs):
+        wrapper.has_been_called = True
+        return func(*args, **kwargs)
+
+    wrapper.has_been_called = False
+    return wrapper
+
 
 class KeystoneXL:
     """Your code here!"""
@@ -18,14 +28,23 @@ class KeystoneXL:
                 self.parameters[component.name]["random_state"] = self.random_state
             self.components.append(component(**self.parameters[component.name]))
 
+    @trackcalls
     def fit(self, X_train, y_train):
-        out = X_train
+        """Function that fits all components in the pipeline using the training
+        data.
+
+        Arguments:
+            X_test (np.ndarray): array of the test input data to predict on
+            y_test (np.ndarray): array of the test output data to score against
+        Returns:
+            None
+
+        """
+        data = X_train
         for component in self.components:
-            component.fit(out, y_train)
+            component.fit(data, y_train)
             if isinstance(component, Transformer):
-                out = component.transform(out)
-            if isinstance(component, Estimator):
-                return component.predict(out)
+                data = component.transform(data)
 
     def predict(self, X_test):
         """Function to run X_test through pipeline and evaluate predictions
@@ -39,13 +58,13 @@ class KeystoneXL:
 
         """
 
-        out = X_test
+        data = X_test
         for component in self.components:
             if isinstance(component, Transformer):
-                out = component.transform(out)
+                data = component.transform(data)
             if isinstance(component, Estimator):
-                out = component.predict(out)
-        return out
+                data = component.predict(data)
+        return data
 
     def metrics(self, y_predicted, y_true, metrics):
         """Function to run requested metrics on outputs.
@@ -65,10 +84,3 @@ class KeystoneXL:
             print("%s: %f" % (metric_str, metric_score))
             results[metric_str] = metric_score
         return results
-
-
-
-
-
-
-
