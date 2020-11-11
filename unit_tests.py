@@ -83,19 +83,14 @@ def test_pipeline_fit(X_y_binary, get_test_params):
     np.testing.assert_allclose(y_pred.tolist(), [1, 1, 1, 1, 0, 0, 0, 1, 1, 0, 0, 1, 0, 0, 0, 1, 1, 1, 1, 1])
 
 
-# def test_pipeline_fit_no_est(X_y_binary, get_test_params):
-#     parameters, components, metrics, random_state = get_test_params
-#     components = [Imputer, OneHotEncoder]
-#     X, y = X_y_binary
-#     X_train, X_test, y_train, y_test = split_data(X, y, random_state=random_state)
-#     pipeline = KeystoneXL(parameters=parameters,  # noqa: F841
-#                           components=components,
-#                           random_state=random_state)
-#     pipeline.fit(X_train, y_train)
-#     y_pred = pipeline.predict(X_test)
-#     # import pdb;
-#     # pdb.set_trace()
-#     np.testing.assert_allclose(y_pred.tolist(), [1, 1, 1, 1, 0, 0, 0, 1, 1, 0, 0, 1, 0, 0, 0, 1, 1, 1, 1, 1])
+def test_pipeline_creation_no_est(X_y_binary, get_test_params):
+    parameters, components, metrics, random_state = get_test_params
+    components = [Imputer, OneHotEncoder]
+    with pytest.raises(ValueError,
+                       match="KeystoneXL:init() - Pipeline components must end in Estimator."):
+        pipeline = KeystoneXL(parameters=parameters,  # noqa: F841
+                              components=components,
+                              random_state=random_state)
 
 
 def test_pipeline_predict(X_y_binary, get_test_params):
@@ -111,15 +106,19 @@ def test_pipeline_predict(X_y_binary, get_test_params):
 
 
 def test_pipeline_metrics(X_y_binary, get_test_params):
-    X, y = X_y_binary
-    X_train, X_test, y_train, y_test = split_data(X, y)
     parameters, components, metrics, random_state = get_test_params
+    X, y = X_y_binary
+    X_train, X_test, y_train, y_test = split_data(X, y, random_state=random_state)
     pipeline = KeystoneXL(parameters=parameters,  # noqa: F841
                           components=components,
                           random_state=random_state)
     pipeline.fit(X_train, y_train)
     y_pred = pipeline.predict(X_test)
-    print(sum(y_pred.to_numpy() == y_test.to_numpy()) / len(y_pred))
+    result = pipeline.metrics(y_predicted=y_pred, y_true=y_test, metrics=metrics)
+    np.testing.assert_allclose(y_pred.tolist(), [1, 1, 1, 1, 0, 0, 0, 1, 1, 0, 0, 1, 0, 0, 0, 1, 1, 1, 1, 1])
+    assert result == {'AUC': 0.9166666666666667, 'AccuracyBinary': 0.9, 'AccuracyMulticlass': 0.9,
+                      'F1': 0.9090909090909091, 'MSE': 0.1, 'Precision': 1.0,
+                      'R2': 0.5833333333333334, 'Recall': 0.8333333333333334}
 
 # split_data() docs should have :return: param more explicit about the order of the
 # returns

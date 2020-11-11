@@ -28,6 +28,9 @@ class KeystoneXL:
                 self.parameters[component.name]["random_state"] = self.random_state
             self.components.append(component(**self.parameters[component.name]))
 
+        if not isinstance(self.components[-1], Estimator):
+            raise ValueError("KeystoneXL:init() - Pipeline components must end in Estimator.")
+
     @trackcalls
     def fit(self, X_train, y_train):
         """Function that fits all components in the pipeline using the training
@@ -35,7 +38,7 @@ class KeystoneXL:
 
         Arguments:
             X_test (np.ndarray): array of the test input data to predict on
-            y_test (np.ndarray): array of the test output data to score against
+*            y_test (np.ndarray): array of the test output data to score against
         Returns:
             None
 
@@ -84,3 +87,4 @@ class KeystoneXL:
             print("%s: %f" % (metric_str, metric_score))
             results[metric_str] = metric_score
         return results
+
