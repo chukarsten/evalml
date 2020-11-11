@@ -1,4 +1,5 @@
 import numpy as np
+import pandas as pd
 import pytest
 from evalml.objectives import (AUC, F1, MSE, R2, AccuracyBinary,
                                AccuracyMulticlass, Precision, Recall)
@@ -83,6 +84,30 @@ def test_pipeline_fit(X_y_binary, get_test_params):
     # Use prediction to infer that fitting done properly
     y_pred = pipeline.predict(X_test)
     np.testing.assert_allclose(y_pred.tolist(), [1, 1, 1, 1, 0, 0, 0, 1, 1, 0, 0, 1, 0, 0, 0, 1, 1, 1, 1, 1])
+
+
+def test_pipeline_fit_multi_type(X_y_binary, get_test_params):
+    parameters, components, metrics, random_state = get_test_params
+    numerics_with_nulls = [np.nan, 1, 2, 3, 4]
+    categoricals = ["peace", "is", np.nan, "lie", "lie"]
+    numerics = [x for x in range(5)]
+    X = pd.DataFrame({"nulls": numerics_with_nulls,
+                      "categoricals": categoricals,
+                      "numerical": numerics})
+    y = pd.Series([0, 1, 1, 0, 1])
+    pipeline = KeystoneXL(parameters=parameters,  # noqa: F841
+                          components=components,
+                          random_state=random_state)
+
+    transformed_data = pipeline.fit(X, y, debug=True)
+
+    # Make sure numeric with null column imputed according to strategy
+    assert transformed_data["nulls"].iloc[0] == np.mean(
+        numerics_with_nulls[1:]), "Pipeline: numeric values not imputed correctly."
+    assert {"categoricals_is", "categoricals_peace", "categoricals_lie"} <= set(
+        transformed_data.columns), "Pipeline: categorical values not encoded correctly."
+    assert transformed_data["categoricals_lie"].sum() == 3, "Pipeline: categorical values not imputed correctly."
+    np.testing.assert_array_equal(transformed_data["numerical"], numerics)
 
 
 def test_pipeline_creation_no_est(X_y_binary, get_test_params):

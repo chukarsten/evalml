@@ -45,15 +45,16 @@ class KeystoneXL:
             raise ValueError("KeystoneXL:init() - Pipeline components must end in Estimator.")
 
     @trackcalls
-    def fit(self, X_train, y_train):
+    def fit(self, X_train, y_train, debug=False):
         """Function that fits all components in the pipeline using the training
         data.
 
         Arguments:
             X_train (np.ndarray): array of the training input data to fit
             y_train (np.ndarray): array of the test output data to score against
+            debug (bool): indicator to return transformed data
         Returns:
-            None
+            data (np.ndarray): array of the transformed training data.
 
         """
         data = X_train
@@ -61,6 +62,8 @@ class KeystoneXL:
             component.fit(data, y_train)
             if isinstance(component, Transformer):
                 data = component.transform(data)
+        if debug:
+            return data
 
     def predict(self, X_test):
         """Function to run X_test through pipeline and evaluate predictions
@@ -83,7 +86,7 @@ class KeystoneXL:
         return data
 
     def metrics(self, y_predicted, y_true, metrics):
-        """Function to run requested metrics on outputs.
+        """Function to run requested metrics on outputs.  Prints the output to terminal.
 
         Arguments:
             y_predicted (np.ndarray): array of the predicted labels
