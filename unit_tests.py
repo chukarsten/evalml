@@ -1,7 +1,9 @@
 import numpy as np
 import pytest
-from evalml.objectives import F1, Recall, Precision, AUC, AccuracyBinary, AccuracyMulticlass, R2, MSE
-from evalml.pipelines.components import Imputer, LogisticRegressionClassifier, OneHotEncoder
+from evalml.objectives import (AUC, F1, MSE, R2, AccuracyBinary,
+                               AccuracyMulticlass, Precision, Recall)
+from evalml.pipelines.components import (Imputer, LogisticRegressionClassifier,
+                                         OneHotEncoder)
 from evalml.pipelines.components.estimators import Estimator
 from evalml.pipelines.components.transformers import Transformer
 from evalml.preprocessing import split_data
@@ -87,7 +89,7 @@ def test_pipeline_creation_no_est(X_y_binary, get_test_params):
     parameters, components, metrics, random_state = get_test_params
     components = [Imputer, OneHotEncoder]
     with pytest.raises(ValueError,
-                       match="KeystoneXL:init() - Pipeline components must end in Estimator."):
+                       match="end in Estimator"):
         pipeline = KeystoneXL(parameters=parameters,  # noqa: F841
                               components=components,
                               random_state=random_state)

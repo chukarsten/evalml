@@ -16,9 +16,22 @@ def trackcalls(func):
 
 
 class KeystoneXL:
-    """Your code here!"""
+    """ML Pipeline Interview Class"""
 
     def __init__(self, components, parameters, random_state):
+        """Custom ML pipeline with components defined by the user.
+
+        Arguments:
+            components (list of evalml.components): array of the
+            evalml components consisting of a series of Transformers
+            followed by an Estimator
+        Raises:
+            ValueError: if the components list does not end in an instance
+            of an Estimator
+        Returns:
+            None
+
+        """
         self.parameters = copy.deepcopy(parameters)
         self.random_state = random_state
         self.components = []
@@ -37,8 +50,8 @@ class KeystoneXL:
         data.
 
         Arguments:
-            X_test (np.ndarray): array of the test input data to predict on
-*            y_test (np.ndarray): array of the test output data to score against
+            X_train (np.ndarray): array of the training input data to fit
+            y_train (np.ndarray): array of the test output data to score against
         Returns:
             None
 
@@ -87,4 +100,3 @@ class KeystoneXL:
             print("%s: %f" % (metric_str, metric_score))
             results[metric_str] = metric_score
         return results
-
